@@ -178,10 +178,14 @@ class Path_mapper(VMobject):
         tv = self.get_tangent_unit_vector(s)
         return angle_of_vector(tv)
     
+    def are_two_vectors_collinear(self, v1, v2, tolerance=1e-15):
+        return np.linalg.norm(np.cross(v1, v2)) < tolerance
+    
     def get_normal_unit_vector(self,s):
         tv = self.get_tangent_unit_vector(s)
         # Tangent and rotation axis must not be collinear
-        axis = Y_AXIS if np.linalg.norm(np.cross(tv, Z_AXIS)) == 0 else Z_AXIS
+        # @todo They should be orthogonal
+        axis = Y_AXIS if self.are_two_vectors_collinear(tv, Z_AXIS) else Z_AXIS
         return rotate_vector(tv, PI/2, axis=axis)
 
     def get_curvature_vector(self,s):

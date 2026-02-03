@@ -177,10 +177,16 @@ class Path_mapper(VMobject):
     def get_tangent_angle(self,s):
         tv = self.get_tangent_unit_vector(s)
         return angle_of_vector(tv)
-
+    
+    def are_two_vectors_collinear(self, v1, v2, tolerance=1e-15):
+        return np.linalg.norm(np.cross(v1, v2)) < tolerance
+    
     def get_normal_unit_vector(self,s):
         tv = self.get_tangent_unit_vector(s)
-        return rotate_vector(tv,PI/2)
+        # Tangent and rotation axis must not be collinear
+        # @todo They should be orthogonal
+        axis = Y_AXIS if self.are_two_vectors_collinear(tv, Z_AXIS) else Z_AXIS
+        return rotate_vector(tv, PI/2, axis=axis)
 
     def get_curvature_vector(self,s):
         indx, bz_a = self.get_bezier_index_from_length(s)
@@ -389,7 +395,7 @@ class Curve_Warp(VMobject):
         super().__init__(**kwargs)
         self.match_style(warp_source)
 
-    def generate_points(self):
+    def generate_points(self, sketch_plane=None):
 
         s0 = self.PM.length_from_alpha(self.anchor_point)
         x_points = self.warp_source.points[:, 0] + s0
